@@ -12,9 +12,9 @@ import torch.nn.functional as F
 parser = argparse.ArgumentParser(description='Easy video feature extractor')
 
 parser.add_argument(
-    '--csv',
+    '--jsn',
     type=str,
-    help='input csv with video input path')
+    help='input json with video info')
 parser.add_argument('--batch_size', type=int, default=64,
                             help='batch size')
 parser.add_argument('--type', type=str, default='2d',
@@ -30,7 +30,7 @@ parser.add_argument('--resnext101_model_path', type=str, default='model/resnext1
 args = parser.parse_args()
 
 dataset = VideoLoader(
-    args.csv,
+    args.jsn,
     framerate=1 if args.type == '2d' else 24,
     size=224 if args.type == '2d' else 112,
     centercrop=(args.type == '3d'),
@@ -46,7 +46,7 @@ loader = DataLoader(
 )
 preprocess = Preprocessing(args.type)
 model = get_model(args)
-
+path='/content/output_features'
 with th.no_grad():
     for k, data in enumerate(loader):
         input_file = data['input'][0]
@@ -71,6 +71,6 @@ with th.no_grad():
                 features = features.cpu().numpy()
                 if args.half_precision:
                     features = features.astype('float16')
-                np.save(output_file, features)
+                np.save(path+'/'+'output'+str(k+1)+'.npy', features)
         else:
             print('Video {} already processed.'.format(input_file))
